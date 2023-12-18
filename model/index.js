@@ -1,7 +1,11 @@
 const {Sequelize,DataTypes}=require("sequelize");
-
-const sequelize = new Sequelize('temp','root','Abhay@356',{
-    host:'localhost',
+const dotenv=require('dotenv')
+// const process = require('process');
+// const path = require('path');
+ dotenv.config()
+//  console.log("databse ",process.env.DATABASE);
+const sequelize = new Sequelize(process.env.DATABASE,process.env.USERNAME,process.env.PASSWORD,{
+    host:process.env.HOST,
     logging:false,
     dialect:'mysql'
 })
@@ -17,12 +21,11 @@ db.sequelize=sequelize;
 db.Sequelize=Sequelize;
 
 db.user=require("./user")(sequelize,DataTypes)
-db.contact=require("./contact")(sequelize,DataTypes)
-db.sequelize.sync({force:false})
+db.amount=require("./amount")(sequelize,DataTypes)
+db.transaction=require("./transaction")(sequelize,DataTypes)
+db.sequelize.sync({force:true})
 
-db.user.hasOne(db.contact, {foreignKey:'user_id'
-  });
-db.contact.belongsTo(db.user);
+
 
 
 module.exports=db;

@@ -5,24 +5,51 @@ module.exports=(sequelize,DataTypes)=>{
 
 const User = sequelize.define('User', {
   // Model attributes are defined here
-  firstName: {
+  user_id: {
+    type: DataTypes.INTEGER,
+    autoIncrement: true,
+    primaryKey: true,
+},
+full_name: {
     type: DataTypes.STRING,
-    allowNull: false,
-    // get() {
-    //   const rawValue = this.getDataValue('firstName');
-    //   return rawValue ?'Mr '+ rawValue.toUpperCase() : null;
-    // }
-  },
-  lastName: {
+    allowNull: true,
+},
+display_name: {
     type: DataTypes.STRING,
-    // allowNull defaults to true
-    // set(value) {
-      // Storing passwords in plaintext in the database is terrible.
-      // Hashing the value with an appropriate cryptographic hash function is better.
-      // this.setDataValue('password', value+' indain');
-    
-   
-  }
+    allowNull: true,
+},
+username: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    unique: {
+        args: true,
+        msg: "Username already in use!",
+    },
+},
+email: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    unique: {
+        args: true,
+        msg: "Email address already in use!",
+    },
+},
+mobile: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    unique: {
+        args: true,
+        msg: "Mobile already in use!",
+    },
+},
+password: {
+    type: DataTypes.STRING,
+    allowNull: true,
+},
+profile_image: {
+  type: DataTypes.TEXT,
+  allowNull: true,
+},
 }, {
     tableName: 'users'
   // Other model options go here
