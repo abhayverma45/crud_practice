@@ -54,6 +54,7 @@ profile_image: {
     tableName: 'users'
   // Other model options go here
 });
+
 return User;
 
 }

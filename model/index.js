@@ -23,7 +23,14 @@ db.Sequelize=Sequelize;
 db.user=require("./user")(sequelize,DataTypes)
 db.amount=require("./amount")(sequelize,DataTypes)
 db.transaction=require("./transaction")(sequelize,DataTypes)
-db.sequelize.sync({force:true})
+db.userbank=require("./user_bank")(sequelize,DataTypes)
+db.userkyc=require("./user_kyc")(sequelize,DataTypes)
+
+db.user.hasOne(db.amount,{foreignKey:'userid'});
+db.amount.belongsTo(db.user,{foreignKey:'userid'})
+
+
+db.sequelize.sync({force:false})
 
 
 

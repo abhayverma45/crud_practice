@@ -6,10 +6,14 @@ module.exports=(sequelize,DataTypes)=>{
 
 const Amount = sequelize.define('amount', {
   // Model attributes are defined here
-  user_id: {
+  Id: {
     type: DataTypes.INTEGER,
     autoIncrement: true,
     primaryKey: true,
+},
+userid:{
+  type:DataTypes.INTEGER,
+  allowNull:true
 },
 amount: {
     type: DataTypes.INTEGER,
@@ -21,6 +25,8 @@ amount: {
     // tableName: 'amount'
   // Other model options go here
 });
+
+
 return Amount;
 
 }

@@ -8,10 +8,11 @@ module.exports = async (req, res, next) => {
    
     const authorization = req.headers.authorization;
     
-    // console.log(authorization);
+    // console.log("auth-->",authorization);
+
    
     if (!authorization) {
-        // responseData.msg = 'UnAuthorized Accesss';
+       
         res.status(500).json("user is not authorized")
     }
     const token = authorization.split(' ')[1];
@@ -28,7 +29,9 @@ module.exports = async (req, res, next) => {
         const user = await db.user.findOne({
             where: { user_id: decoded.userId },
         });
+        
         req.user = user;
+        // console.log(req.user)
        
         next();
         })
