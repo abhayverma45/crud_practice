@@ -13,9 +13,12 @@ module.exports=()=>{
     routes.get("/getprofile",authentication,userCntrl.getProfile)
     routes.post("/debit_amount",authentication,userCntrl.debitAmount)
     routes.post("/addBank_Details",authentication,upload.fields([{name:"pan_image"},{name:"adhar_image"}]),userCntrl.addUserBankDetails)
+    routes.get("/gethistory",authentication,userCntrl.getHistory)
+    // this route works when user send the otp by manually
+    routes.get("/verify_OTP",authentication,userCntrl.verifyOtp) 
+    // this route for the auto verification of email
+    routes.get("/verify_OTP_by_link",userCntrl.verifyOtpByLink)
 
 
-    
-   
     return routes;
 }

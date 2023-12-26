@@ -1,7 +1,5 @@
 const {Sequelize,DataTypes}=require("sequelize");
 const dotenv=require('dotenv')
-// const process = require('process');
-// const path = require('path');
  dotenv.config()
 //  console.log("databse ",process.env.DATABASE);
 const sequelize = new Sequelize(process.env.DATABASE,process.env.USERNAME,process.env.PASSWORD,{
@@ -29,8 +27,10 @@ db.userkyc=require("./user_kyc")(sequelize,DataTypes)
 db.user.hasOne(db.amount,{foreignKey:'userid'});
 db.amount.belongsTo(db.user,{foreignKey:'userid'})
 
+// db.transaction.hasOne(db.user,{foreignKey:'user_id'})
+// db.user.belongsTo(db.transaction)
 
-db.sequelize.sync({force:false})
+db.sequelize.sync({force:true})
 
 
 

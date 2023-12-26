@@ -1,4 +1,5 @@
 const { user } = require(".");
+const {Sequelize}=require("sequelize");
 
 module.exports=(sequelize,DataTypes)=>{
 
@@ -6,7 +7,7 @@ module.exports=(sequelize,DataTypes)=>{
 const User = sequelize.define('User', {
   // Model attributes are defined here
   user_id: {
-    type: DataTypes.INTEGER,
+    type: Sequelize.INTEGER,
     autoIncrement: true,
     primaryKey: true,
 },
@@ -50,6 +51,21 @@ profile_image: {
   type: DataTypes.TEXT,
   allowNull: true,
 },
+is_email_verified: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    defaultValue: 0, // Default value set to 0
+  },
+  is_mobile_verified: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    defaultValue: 0, // Default value set to 0
+  },
+ otp: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    defaultValue: null, // Default value set to 0
+  },
 }, {
     tableName: 'users'
   // Other model options go here

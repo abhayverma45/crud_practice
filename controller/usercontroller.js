@@ -14,8 +14,11 @@ const upload=require("../utils/multer");
 const { user } = require("../model");
 const { check } = require("express-validator");
 
+const randonString=require("randomstring");
+const sendMail=require("../helper/sendemail")
 
-console.log("abhay");
+
+// console.log("abhay");
 
 const userSignUp=async(req,res)=>{
 
@@ -60,6 +63,24 @@ const userSignUp=async(req,res)=>{
     const hashedPassword = await bcrypt.hash(password, 10);
 
         const newUser = await User.create({full_name,display_name,username,email,mobile,password:hashedPassword,profile_image});
+
+      
+        const randomToken=12345678;
+        const mailSubject = 'Email Verification';
+        const verificationLink = `http://localhost:3000/api/v1/user/verify_OTP_by_link?=${randomToken}`;
+    const content = `<p>Hi ${full_name}, please <a href="${verificationLink}">verify</a> your email.</p>`;
+        sendMail(email,mailSubject,content);
+        // console.log(email)
+        // console.log(mailsubject);
+        // console.log(content);
+        // db.query('update users set token=? where email=?',[randomtoken,email]);
+    // Using sequelize.query to execute a raw SQL update
+    await User.sequelize.query('UPDATE users SET otp = ? WHERE email = ?', {
+      replacements: [randomToken, email],
+      type: sequelize.QueryTypes.UPDATE,
+    });
+
+
         return res.status(201).json({
             statusCode: 201,
             status: true,
@@ -232,7 +253,7 @@ const userSignin=async(req,res)=>{
       let user = req.user;
       let userId=user.user_id;
 
-      // console.log(userId)
+      console.log(userId)
     
       const{amount}=req.body;
       const existingAmount = await Amount.findOne({ where: { Id: userId } });
@@ -243,8 +264,8 @@ const userSignin=async(req,res)=>{
         userid:userId,
       });
        
-      const transactionId = uuidv4();
-      // const transactionId = Date.now();
+      // const transactionId = uuidv4();
+      const transactionId = Date.now();
         
         const trans_history=await Transaction.create({
           userid:userId,
@@ -261,7 +282,7 @@ const userSignin=async(req,res)=>{
         // If the user doesn't have an entry, create a new record
         const newAmount = await Amount.create({ userid:userId ,amount });
        
-        const transactionId = uuidv4();
+        const transactionId = Date.now();
       
 
         const trans_history=await Transaction.create({
@@ -341,13 +362,14 @@ res.status(200).json(flattenedDetails);
       }
       const { amount } = req.body;
       const existingAmount = await Amount.findOne({ where: { Id: userId } });
+      console.log("gggg",existingAmount)
       if (existingAmount && existingAmount.amount >= amount) {
         // If the user has enough balance, proceed with the debit
         const updatedAmount = await existingAmount.update({
           amount: Number(existingAmount.amount) - Number(amount),
         });
   
-        const transactionId = uuidv4();
+        const transactionId = Date.now();
   
         const trans_history = await Transaction.create({
           userid: userId,
@@ -437,6 +459,145 @@ try {
 }
 }
 
+getHistory=async(req,res)=>{
+try {
+  let user=req.user;
+  let Id=user.user_id;
+  console.log(Id)
+  if (!user) {
+    return res.status(401).json({
+      statusCode: 401,
+      status: false,
+      message: 'user not found',
+    });
+  }
+  const exitUser=await Transaction.findAll({
+    attributes: ['transaction_id', 'type', 'transaction_amt'],
+    include: [{
+      model: User,
+      attributes: ['username'],
+    }],
+
+   })
+
+   const flattenedDetailsArray = exitUser.map(exitUser => {
+    const { User: { username }, ...transactionData } = exitUser.toJSON();
+    return { ...transactionData, username };
+  });
+  
+  // Now, flattenedDetailsArray contains an array of objects with flattened structure
+  // console.log(flattenedDetailsArray);
+  res.status(200).json(flattenedDetailsArray)
+  
+} catch (error) {
+  console.log(error);
+  res.status(500).json("internal server error")
+}
+}
+
+const verifyOtp = async (req, res) => {
+  try {
+    const user = req.user; 
+    const userId = user.user_id;
+    
+    const { otp } = req.body;
+    
+    // Fetch the user from the database
+    const exitUser = await User.findOne({
+      where: {
+        user_id: userId,
+      },
+    });
+
+    if (!exitUser) {
+      return res.status(404).json({
+        statusCode: 404,
+        status: false,
+        message: 'User not found',
+      });
+    }
+
+    // Check if the provided OTP matches the stored token
+    if (otp === exitUser.token) {
+      // Update the user record to mark the email as verified or perform any other actions
+      // For example, you might want to set a flag like is_email_verified to true
+      await User.update({
+        is_email_verified: true,
+      }, {
+        where: {
+          user_id: userId,
+        },
+      });
+
+      return res.status(200).json({
+        statusCode: 200,
+        status: true,
+        message: 'OTP verification successful',
+      });
+    } else {
+      return res.status(400).json({
+        statusCode: 400,
+        status: false,
+        message: 'Invalid OTP',
+      });
+    }
+  } catch (error) {
+    // console.error(error);
+    res.status(500).json({
+      statusCode: 500,
+      status: false,
+      message: 'Internal Server Error',
+    });
+  }
+};
+
+const  verifyOtpByLink = async (req, res) => {
+  try {
+    const { otp } = req.query;
+
+    // Find the user by the fixed token
+    const user = await User.findOne({
+      where: {
+        otp: otp,
+      },
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        statusCode: 404,
+        status: false,
+        message: 'User not found or invalid token',
+      });
+    }
+
+    // Update the user's is_email_verified status
+    await User.update({
+      is_email_verified: true,
+      otp: null, // Clear the token after verification
+    }, {
+      where: {
+        otp: otp,
+      },
+    });
+
+    return res.status(200).json({
+      statusCode: 200,
+      status: true,
+      message: 'Email verification successful',
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      statusCode: 500,
+      status: false,
+      message: 'Internal Server Error',
+    });
+  }
+};
+
+
+
+
 
     
    
@@ -450,5 +611,8 @@ module.exports={
     addAmount,
     getProfile,
     debitAmount,
-    addUserBankDetails
+    addUserBankDetails,
+    getHistory,
+    verifyOtp,
+    verifyOtpByLink
 }
